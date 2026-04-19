@@ -810,19 +810,49 @@ function updateClock(){
 }
 
 // ── LOADER ──────────────────────────────────────────────────
-async function init(){
-  setInterval(updateClock,1000);updateClock();
-  let p=0;
-  const pi=setInterval(()=>{if(p<88){p+=Math.random()*18;$('lp').style.width=Math.min(p,88)+'%';}},350);
-  se('lm','CONNECTING TO MARKET FEEDS...');
-  await new Promise(r=>setTimeout(r,800));
-  se('lm','LOADING MARKET DATA...');
-  await fetchData();
-  clearInterval(pi);$('lp').style.width='100%';se('lm','TERMINAL READY');
-  await new Promise(r=>setTimeout(r,500));
-  const ldr=$('ldr');ldr.style.opacity='0';
-  setTimeout(()=>{ldr.style.display='none';$('app').style.display='flex';},600);
-  setInterval(fetchData,30000);
+async function fetchData(){
+  try{
+    const r = await fetch('/api/all', {
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+
+    const d = await r.json();
+    D = d;
+
+    // ── STATE HANDLING ─────────────────────────────
+    if(d.status === 'live'){
+        renderAll();
+
+        se('svs','DATA: LIVE','#00D97E');
+    }
+
+    else if(d.status === 'warming_up' || d.status === 'loading'){
+        se('svs','INITIALIZING MARKET ENGINE...','#FF9100');
+        se('lupd','BOOTSTRAP PHASE');
+    }
+
+    else {
+        se('svs','UNKNOWN STATE','#FF3B30');
+    }
+
+    se('lupd',
+      'UPD: ' + new Date().toLocaleTimeString(
+        'en-US',
+        {hour:'2-digit',minute:'2-digit',second:'2-digit'}
+      )
+    );
+
+    se('src','SOURCE: ' + window.location.hostname);
+
+    // ── REFRESH STRATEGY ───────────────────────────
+    setTimeout(fetchData, 5000);
+
+  } catch(e){
+    se('svs','RETRYING CONNECTION...','#FF9100');
+    setTimeout(fetchData, 8000);
+  }
 }
 
 document.addEventListener('DOMContentLoaded',init);
