@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>◈ GIT — Gold Intelligence Terminal</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C8A840;--bull:#00D97E;--bear:#E74C3C;--neu:#FF9100;--blue:#5B8BDF;--purple:#9B59B6;
+  --mono:'Roboto Mono',monospace;--sans:'Inter',system-ui,sans-serif;
+  --bg0:#000000;--bg1:#020202;--bg2:#040404;--bg3:#080808;
+  --b1:#0c0c0c;--b2:#141414;--b3:#1c1c1c;
+  --t1:#888;--t2:#555;--t3:#333;--t4:#1e1e1e
+}
+html,body{min-height:100vh;background:var(--bg0);color:var(--t1);font-family:var(--mono);overflow-x:hidden}
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:#050505}::-webkit-scrollbar-thumb{background:var(--b3)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.12}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes glow{0%,100%{box-shadow:0 0 6px #C8A84020}50%{box-shadow:0 0 16px #C8A84040}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.blink{animation:blink 1.8s ease infinite}
+.pdot{animation:pulse 2s ease infinite}
+.fade{animation:fadeIn .4s ease forwards}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;min-height:100vh}
+
+/* HEADER */
+#hdr{background:#010101;border-bottom:1px solid #C8A84018;padding:0 14px;display:flex;align-items:center;gap:14px;height:46px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.hlogo{font-size:11px;font-weight:700;letter-spacing:5px;color:var(--gold);font-family:var(--sans)}
+.hdiv{width:1px;height:18px;background:var(--b3);flex-shrink:0}
+.hprice{font-size:21px;font-weight:700;color:var(--gold);letter-spacing:-.5px}
+.hchg{font-size:11px;font-weight:500;margin-left:4px}
+.hpip{display:flex;flex-direction:column;align-items:center;min-width:50px}
+.hplbl{font-size:6px;letter-spacing:2px;color:var(--t4);font-family:var(--sans)}
+.hpval{font-size:11px;font-weight:500}
+.hbias{padding:3px 12px;border-radius:2px;font-size:9px;font-weight:700;letter-spacing:3px;font-family:var(--sans);border:1px solid transparent}
+.hlive{display:flex;align-items:center;gap:5px;font-size:8px;letter-spacing:2px;color:var(--bull);font-family:var(--sans)}
+
+/* TICKER */
+#tkr{background:#000;border-bottom:1px solid var(--b1);height:22px;overflow:hidden;flex-shrink:0}
+#tkri{display:flex;align-items:center;white-space:nowrap;animation:scroll 55s linear infinite;height:100%}
+.ti{display:inline-flex;align-items:center;gap:8px;padding:0 20px;font-size:9px;border-right:1px solid var(--b1)}
+.ts{color:var(--t4);letter-spacing:1px}
+
+/* MAIN GRID */
+#grid{display:grid;grid-template-columns:264px 1fr 264px;gap:1px;background:var(--b1);flex:1;min-height:0}
+.pnl{background:var(--bg1);padding:11px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.ptl{font-size:9px;font-weight:700;letter-spacing:4px;color:var(--gold);font-family:var(--sans);border-bottom:1px solid #C8A84015;padding-bottom:5px;margin-bottom:1px}
+.slbl{font-size:7px;letter-spacing:3px;color:var(--t4);font-family:var(--sans);margin-top:5px;margin-bottom:2px;border-bottom:1px solid var(--b1);padding-bottom:2px}
+
+/* DATA ROWS */
+.dr{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--b1)}
+.dl{display:flex;flex-direction:column;gap:1px}
+.dlb{font-size:7px;color:var(--t3);letter-spacing:1.5px;font-family:var(--sans)}
+.dv{font-size:13px;font-weight:500;color:var(--t1)}
+.dvsm{font-size:11px;font-weight:500;color:var(--t1)}
+.dc{font-size:9px;color:var(--t2);text-align:right}
+
+/* BADGES */
+.bdg{font-size:7px;font-weight:700;letter-spacing:1.5px;padding:2px 7px;border-radius:2px;font-family:var(--sans);white-space:nowrap}
+.bb{color:var(--bull);background:#00D97E10;border:1px solid #00D97E20}
+.br{color:var(--bear);background:#E74C3C10;border:1px solid #E74C3C20}
+.bn{color:var(--neu);background:#FF910010;border:1px solid #FF910020}
+.bbl{color:var(--blue);background:#5B8BDF10;border:1px solid #5B8BDF20}
+.bg{color:var(--gold);background:#C8A84010;border:1px solid #C8A84020}
+
+/* SCORE BLOCKS */
+.sb{padding:10px;background:var(--bg3);border:1px solid var(--b2);border-radius:3px;margin-top:4px}
+.sbt{font-size:7px;letter-spacing:3px;color:var(--t3);font-family:var(--sans);margin-bottom:5px}
+.sbn{font-size:30px;font-weight:700;line-height:1}
+.btr{height:3px;background:var(--b1);border-radius:2px;margin:5px 0 3px;overflow:hidden}
+.btf{height:100%;border-radius:2px;transition:width 1.2s ease,background .8s ease}
+.sbl{font-size:7px;letter-spacing:2px;font-family:var(--sans)}
+
+/* CENTER */
+#ctr{background:var(--bg0);border-left:1px solid var(--b2);border-right:1px solid var(--b2)}
+#bword{font-size:25px;font-weight:700;letter-spacing:4px;font-family:var(--sans);line-height:1;text-align:center}
+#bsub{font-size:7px;letter-spacing:3px;font-family:var(--sans);color:var(--t3);text-align:center;margin-top:3px}
+#cnum{font-size:34px;font-weight:700;color:var(--gold);text-align:center;line-height:1;margin:4px 0}
+
+/* WINDOWS */
+.wg{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.wb{padding:8px;background:var(--bg3);border:1px solid var(--b2);border-radius:3px;text-align:center}
+.wbl{font-size:7px;letter-spacing:2px;color:var(--t3);font-family:var(--sans);margin-bottom:3px}
+.wbv{font-size:15px;font-weight:700;line-height:1}
+.wbs{font-size:7px;color:var(--t3);font-family:var(--sans);margin-top:2px}
+
+/* LEVELS */
+.lg{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.lv{padding:5px 7px;background:var(--bg3);border:1px solid var(--b2);border-radius:2px}
+.lvl{font-size:6px;letter-spacing:1.5px;color:var(--t4);font-family:var(--sans);margin-bottom:2px}
+.lvv{font-size:11px;font-weight:500}
+
+/* SESSION */
+#sess{padding:8px;background:var(--bg3);border:1px solid #C8A84020;border-radius:3px;text-align:center;animation:glow 3s ease infinite}
+#snm{font-size:7px;letter-spacing:3px;color:var(--t3);font-family:var(--sans);margin-bottom:2px}
+#stm{font-size:20px;font-weight:700;color:var(--gold);line-height:1}
+#ssb{font-size:7px;color:var(--t4);font-family:var(--sans);margin-top:2px}
+
+/* REASONS */
+.rsn{display:flex;align-items:flex-start;gap:6px;padding:4px 0;border-bottom:1px solid var(--b1);font-size:9px;line-height:1.45;font-family:var(--sans)}
+.ri{flex-shrink:0;font-size:8px;margin-top:1px}
+
+/* FEDWATCH */
+.fwg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+.fwb{padding:6px;background:var(--bg3);border:1px solid var(--b2);border-radius:2px;text-align:center}
+.fwl{font-size:6px;letter-spacing:1.5px;color:var(--t4);font-family:var(--sans);margin-bottom:3px}
+.fwp{font-size:16px;font-weight:700}
+
+/* RSI BAR */
+.rsit{height:14px;background:var(--bg3);border-radius:2px;position:relative;overflow:hidden;margin:4px 0}
+.rsios{position:absolute;left:0;top:0;width:30%;height:100%;background:#00D97E07}
+.rsiob{position:absolute;right:0;top:0;width:30%;height:100%;background:#E74C3C07}
+.rsin{position:absolute;top:0;width:2px;height:100%;background:var(--gold);transition:left .8s ease}
+
+/* HAWK BAR */
+.hkt{height:4px;background:var(--b1);border-radius:2px;margin:6px 0 3px;overflow:hidden}
+.hkf{height:100%;border-radius:2px;transition:width 1.2s ease,background .8s ease}
+
+/* CALENDAR */
+.cai{padding:4px 0;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:7px}
+.cat{font-size:8px;color:var(--t3);min-width:30px;font-family:var(--sans)}
+.cae{font-size:8px;font-family:var(--sans);flex:1;line-height:1.3}
+.cad{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+
+/* ANALOG */
+.alog{padding:6px 7px;background:var(--bg3);border:1px solid var(--b2);border-radius:2px;margin-bottom:4px}
+.alt{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.ale{font-size:8px;color:var(--t2);font-family:var(--sans);font-weight:500}
+.alm{font-size:7px;font-family:var(--sans);font-weight:700}
+.alr{font-size:8px;font-family:var(--sans)}
+.alp{margin-top:4px;font-size:7px;color:var(--t3);font-family:var(--sans);border-top:1px solid var(--b1);padding-top:3px}
+.alb{height:2px;background:var(--b1);border-radius:1px;overflow:hidden;margin-top:3px}
+.alf{height:100%;border-radius:1px;transition:width .8s ease}
+
+/* NEWS */
+#news{background:var(--bg0);border-top:1px solid var(--b2);flex-shrink:0}
+.nh{display:flex;align-items:center;gap:10px;padding:5px 14px;border-bottom:1px solid var(--b1);background:#010101;flex-wrap:wrap}
+.ntl{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--gold);font-family:var(--sans)}
+#ncards{display:flex;gap:6px;padding:8px 14px;overflow-x:auto;min-height:100px}
+.nc{min-width:230px;max-width:250px;padding:8px 10px;background:var(--bg3);border:1px solid var(--b2);border-radius:3px;flex-shrink:0;cursor:pointer;transition:border-color .2s;text-decoration:none}
+.nc:hover{border-color:var(--b3)}
+.ncs{font-size:6px;color:var(--t4);letter-spacing:1px;font-family:var(--sans);margin-bottom:2px}
+.nct{font-size:9px;color:var(--t2);line-height:1.4;font-family:var(--sans);margin-bottom:3px}
+.ncb{font-size:7.5px;color:var(--t4);line-height:1.4;font-family:var(--sans);margin-bottom:3px}
+.nci{display:flex;align-items:center;gap:4px;font-size:7px;font-family:var(--sans)}
+.ncd{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.ncan{margin-top:5px;padding-top:4px;border-top:1px solid var(--b1)}
+.ncal{font-size:6px;color:var(--t4);letter-spacing:1px;font-family:var(--sans);margin-bottom:2px}
+.ncah{font-size:7px;font-family:var(--sans);line-height:1.3}
+
+/* AI OUTPUT */
+#ai{background:var(--bg0);border-top:1px solid var(--b2);padding:8px 14px;flex-shrink:0}
+.ait{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--gold);font-family:var(--sans);margin-bottom:6px}
+#aig{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;font-family:var(--sans);font-size:8.5px;line-height:1.6}
+.ais{font-size:7px;letter-spacing:2px;color:var(--gold);margin-bottom:3px}
+.air{color:var(--t3);margin-bottom:1px}
+.aih{padding:4px 6px;border-left:2px solid var(--neu);border-radius:1px;margin-top:5px;background:transparent}
+
+/* STATUS */
+#stbar{background:#000;border-top:1px solid var(--b1);padding:4px 14px;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.sti{font-size:7px;color:var(--t4);letter-spacing:1px;font-family:var(--sans);display:flex;align-items:center;gap:4px}
+
+/* LOADER */
+#ldr{position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .6s}
+.ll{font-size:18px;font-weight:700;letter-spacing:6px;color:var(--gold);font-family:var(--sans)}
+.ls{font-size:8px;letter-spacing:3px;color:var(--t3);font-family:var(--sans)}
+.lb{width:200px;height:2px;background:var(--b2);border-radius:2px;overflow:hidden}
+.lp{height:100%;background:var(--gold);border-radius:2px;transition:width .5s ease;width:0%}
+.lm{font-size:8px;color:var(--t4);letter-spacing:2px;font-family:var(--sans)}
+
+/* CONF RING */
+.crg{transform:rotate(-90deg)}
+
+@media(max-width:1100px){
+  #grid{grid-template-columns:220px 1fr 220px}
+  #aig{grid-template-columns:1fr 1fr}
+}
+@media(max-width:800px){
+  #grid{grid-template-columns:1fr}
+  #aig{grid-template-columns:1fr}
+  #hdr{flex-wrap:wrap;height:auto;padding:8px 14px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="ldr">
+  <div class="ll">◈ GIT</div>
+  <div class="ls">GOLD INTELLIGENCE TERMINAL v4.0</div>
+  <div class="lb"><div id="lp" class="lp"></div></div>
+  <div id="lm" class="lm">CONNECTING TO MARKET FEEDS...</div>
+</div>
+
+<div id="app" style="display:none">
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="hlogo">◈ GIT</div>
+  <div class="hdiv"></div>
+  <span style="font-size:8px;color:var(--t3);letter-spacing:1px">XAU/USD</span>
+  <span id="hp" class="hprice blink">—</span>
+  <span id="hc" class="hchg">—</span>
+  <div class="hdiv"></div>
+  <div class="hpip"><div class="hplbl">DXY</div><div id="h-dxy" class="hpval blink">—</div></div>
+  <div class="hpip"><div class="hplbl">US10Y</div><div id="h-10y" class="hpval blink">—</div></div>
+  <div class="hpip"><div class="hplbl">VIX</div><div id="h-vix" class="hpval blink">—</div></div>
+  <div class="hpip"><div class="hplbl">SPX</div><div id="h-spx" class="hpval blink">—</div></div>
+  <div class="hpip"><div class="hplbl">WTI</div><div id="h-wti" class="hpval blink">—</div></div>
+  <div class="hpip"><div class="hplbl">SILVER</div><div id="h-ag" class="hpval blink">—</div></div>
+  <div class="hpip"><div class="hplbl">GDX</div><div id="h-gdx" class="hpval blink">—</div></div>
+  <div class="hdiv"></div>
+  <div id="hbias" class="hbias">LOADING...</div>
+  <div style="flex:1"></div>
+  <span id="lupd" style="font-size:7px;color:var(--t4);font-family:var(--sans)">—</span>
+  <div class="hdiv"></div>
+  <div class="hlive"><div class="pdot" style="width:5px;height:5px;border-radius:50%;background:var(--bull)"></div>LIVE</div>
+  <div id="clk" style="font-size:9px;color:var(--t3);font-family:var(--sans)">—</div>
+</div>
+
+<!-- TICKER -->
+<div id="tkr"><div id="tkri"></div></div>
+
+<!-- MAIN GRID -->
+<div id="grid">
+
+<!-- LEFT: MACRO -->
+<div class="pnl">
+  <div class="ptl">◈ MACRO INTELLIGENCE</div>
+
+  <div class="slbl">CURRENCY + RATES</div>
+  <div class="dr"><div class="dl"><div class="dlb">US DOLLAR INDEX</div><div id="v-dxy" class="dv blink">—</div></div><div style="text-align:right"><div id="c-dxy" class="dc">—</div><div id="b-dxy" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">US 10Y YIELD</div><div id="v-10y" class="dv blink">—</div></div><div style="text-align:right"><div id="c-10y" class="dc">—</div><div id="b-10y" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">US 2Y YIELD</div><div id="v-2y" class="dv blink">—</div></div><div style="text-align:right"><div id="c-2y" class="dc">—</div><div id="b-2y" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">TIPS ETF (REAL YIELDS)</div><div id="v-tips" class="dv blink">—</div></div><div style="text-align:right"><div id="c-tips" class="dc">—</div><div id="b-tips" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">YIELD CURVE (2Y–10Y)</div><div id="v-crv" class="dvsm" style="color:var(--blue)">—</div></div><div><div id="b-crv" class="bdg bbl">—</div></div></div>
+
+  <div class="slbl">GLOBAL RISK + EQUITIES</div>
+  <div class="dr"><div class="dl"><div class="dlb">VIX FEAR INDEX</div><div id="v-vix" class="dv blink">—</div></div><div style="text-align:right"><div id="c-vix" class="dc">—</div><div id="b-vix" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">S&P 500</div><div id="v-spx" class="dv blink">—</div></div><div style="text-align:right"><div id="c-spx" class="dc">—</div><div id="b-spx" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">DOW JONES</div><div id="v-dji" class="dv blink">—</div></div><div style="text-align:right"><div id="c-dji" class="dc">—</div><div id="b-dji" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">NASDAQ</div><div id="v-ndx" class="dv blink">—</div></div><div style="text-align:right"><div id="c-ndx" class="dc">—</div><div id="b-ndx" class="bdg bn">—</div></div></div>
+
+  <div class="slbl">COMMODITIES</div>
+  <div class="dr"><div class="dl"><div class="dlb">WTI CRUDE OIL</div><div id="v-wti" class="dv blink">—</div></div><div style="text-align:right"><div id="c-wti" class="dc">—</div><div id="b-wti" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">NATURAL GAS</div><div id="v-ng" class="dv blink">—</div></div><div style="text-align:right"><div id="c-ng" class="dc">—</div><div id="b-ng" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">SILVER XAG/USD</div><div id="v-ag" class="dv blink">—</div></div><div style="text-align:right"><div id="c-ag" class="dc">—</div><div id="b-ag" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">COPPER HG</div><div id="v-cu" class="dv blink">—</div></div><div style="text-align:right"><div id="c-cu" class="dc">—</div><div id="b-cu" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">GOLD/SILVER RATIO</div><div id="v-gsr" class="dvsm" style="color:var(--gold)">—</div></div><div><div id="b-gsr" class="bdg bg">—</div></div></div>
+
+  <div class="slbl">FOREX MAJORS</div>
+  <div class="dr"><div class="dl"><div class="dlb">EUR/USD</div><div id="v-eu" class="dv blink">—</div></div><div style="text-align:right"><div id="c-eu" class="dc">—</div><div id="b-eu" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">GBP/USD</div><div id="v-gb" class="dv blink">—</div></div><div style="text-align:right"><div id="c-gb" class="dc">—</div><div id="b-gb" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">USD/JPY</div><div id="v-jpy" class="dv blink">—</div></div><div style="text-align:right"><div id="c-jpy" class="dc">—</div><div id="b-jpy" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">USD/CNH</div><div id="v-cnh" class="dv blink">—</div></div><div style="text-align:right"><div id="c-cnh" class="dc">—</div><div id="b-cnh" class="bdg bn">—</div></div></div>
+
+  <div class="slbl">GOLD INSTRUMENTS</div>
+  <div class="dr"><div class="dl"><div class="dlb">GLD ETF</div><div id="v-gld" class="dv blink">—</div></div><div style="text-align:right"><div id="c-gld" class="dc">—</div><div id="b-gld" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">GDX MINERS ETF</div><div id="v-gdx" class="dv blink">—</div></div><div style="text-align:right"><div id="c-gdx" class="dc">—</div><div id="b-gdx" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">SLV ETF</div><div id="v-slv" class="dv blink">—</div></div><div style="text-align:right"><div id="c-slv" class="dc">—</div><div id="b-slv" class="bdg bn">—</div></div></div>
+
+  <div class="slbl">FEDWATCH RATE PROBABILITIES</div>
+  <div class="fwg" style="margin-bottom:4px">
+    <div class="fwb"><div class="fwl">RATE CUT</div><div id="fw-cut" class="fwp" style="color:var(--bull)">—%</div></div>
+    <div class="fwb"><div class="fwl">HOLD</div><div id="fw-hold" class="fwp" style="color:var(--neu)">—%</div></div>
+    <div class="fwb"><div class="fwl">RATE HIKE</div><div id="fw-hike" class="fwp" style="color:var(--bear)">—%</div></div>
+  </div>
+  <div style="font-size:8px;font-family:var(--sans);padding:3px 0">Repricing: <span id="fw-sig" style="color:var(--neu)">—</span></div>
+
+  <div class="slbl">HAWKISH INDEX (0–100)</div>
+  <div style="padding:4px 0">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end">
+      <div id="hkn" style="font-size:26px;font-weight:700;color:var(--neu)">—</div>
+      <div id="hkr" class="bdg bn">—</div>
+    </div>
+    <div class="hkt"><div id="hkf" class="hkf" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:6px;color:var(--t4);font-family:var(--sans)"><span>DOVISH 0</span><span>50</span><span>100 HAWKISH</span></div>
+  </div>
+
+  <div class="slbl">ECONOMIC CALENDAR</div>
+  <div id="cal"></div>
+
+  <div class="sb">
+    <div class="sbt">MACRO INTELLIGENCE SCORE</div>
+    <div style="display:flex;align-items:flex-end;gap:8px"><div id="msc" class="sbn" style="color:var(--neu)">—</div><div style="font-size:9px;color:var(--t3);margin-bottom:3px">/100</div></div>
+    <div class="btr"><div id="msb" class="btf" style="width:0%"></div></div>
+    <div id="msl" class="sbl" style="color:var(--neu)">CALCULATING...</div>
+  </div>
+</div>
+
+<!-- CENTER -->
+<div id="ctr" class="pnl">
+  <div class="ptl" style="text-align:center">◈ NY SESSION INTELLIGENCE</div>
+
+  <div style="padding:12px 0 6px">
+    <div id="bword" style="color:var(--neu)">LOADING</div>
+    <div id="bsub">CONNECTING TO DATA FEEDS...</div>
+    <div id="cnum" class="blink">—</div>
+    <div style="font-size:7px;letter-spacing:2px;color:var(--t4);font-family:var(--sans);text-align:center">COMPOSITE SCORE</div>
+  </div>
+
+  <div style="position:relative;width:180px;height:100px;margin:0 auto">
+    <svg viewBox="0 0 180 100" style="width:100%;height:100%" role="img" aria-label="Bias gauge">
+      <path d="M14 90 A74 74 0 0 1 166 90" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round"/>
+      <path id="garc" d="M14 90 A74 74 0 0 1 166 90" fill="none" stroke="#FF9100" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 232" style="transition:stroke-dasharray 1.4s ease,stroke .8s ease"/>
+      <text x="12" y="100" fill="#7B241C" font-size="7" font-family="Inter,sans-serif">BEAR</text>
+      <text x="137" y="100" fill="#1D6B35" font-size="7" font-family="Inter,sans-serif">BULL</text>
+    </svg>
+  </div>
+
+  <div class="slbl" style="text-align:center">TIME WINDOW PROBABILITIES</div>
+  <div class="wg">
+    <div class="wb"><div class="wbl">0–24H BIAS</div><div id="w24" class="wbv" style="color:var(--neu)">—</div><div id="w24p" class="wbs">—</div></div>
+    <div class="wb"><div class="wbl">24–72H BIAS</div><div id="w72" class="wbv" style="color:var(--neu)">—</div><div id="w72p" class="wbs">—</div></div>
+  </div>
+
+  <div class="slbl" style="text-align:center">ACTIVE SESSION</div>
+  <div id="sess">
+    <div id="snm">NY SESSION</div>
+    <div id="stm">—</div>
+    <div id="ssb">—</div>
+  </div>
+
+  <div class="slbl">INSTITUTIONAL KEY LEVELS</div>
+  <div class="lg">
+    <div class="lv"><div class="lvl">PREV DAY HIGH</div><div id="l-pdh" class="lvv" style="color:var(--bull)">—</div></div>
+    <div class="lv"><div class="lvl">PREV DAY LOW</div><div id="l-pdl" class="lvv" style="color:var(--bear)">—</div></div>
+    <div class="lv"><div class="lvl">SESSION HIGH</div><div id="l-sh" class="lvv" style="color:var(--gold)">—</div></div>
+    <div class="lv"><div class="lvl">SESSION LOW</div><div id="l-sl" class="lvv" style="color:var(--gold)">—</div></div>
+    <div class="lv"><div class="lvl">VWAP</div><div id="l-vwap" class="lvv" style="color:var(--blue)">—</div></div>
+    <div class="lv"><div class="lvl">ATR DAILY</div><div id="l-atr" class="lvv" style="color:var(--neu)">—</div></div>
+    <div class="lv"><div class="lvl">WEEKLY HIGH</div><div id="l-pwh" class="lvv" style="color:var(--bull)">—</div></div>
+    <div class="lv"><div class="lvl">WEEKLY LOW</div><div id="l-pwl" class="lvv" style="color:var(--bear)">—</div></div>
+  </div>
+
+  <div class="slbl">PRIMARY SIGNAL DRIVERS</div>
+  <div id="rsns">
+    <div class="rsn"><span class="ri" style="color:var(--t3)">◆</span><span style="color:var(--t3);font-family:var(--sans)">Awaiting market data...</span></div>
+  </div>
+
+  <div class="sb" style="text-align:center">
+    <div class="sbt">CONFIDENCE SCORE</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px">
+      <svg class="crg" viewBox="0 0 56 56" width="56" height="56" role="img" aria-label="Confidence ring">
+        <circle cx="28" cy="28" r="22" fill="none" stroke="#111" stroke-width="4"/>
+        <circle id="crng" cx="28" cy="28" r="22" fill="none" stroke="#FF9100" stroke-width="4" stroke-dasharray="0 138" style="transition:stroke-dasharray 1.2s ease,stroke .8s ease"/>
+      </svg>
+      <div>
+        <div id="cfn" style="font-size:28px;font-weight:700;color:var(--neu)">—</div>
+        <div style="font-size:7px;color:var(--t3);letter-spacing:1px;font-family:var(--sans)">/100 CONFIDENCE</div>
+        <div id="cfl" style="font-size:7px;color:var(--t4);font-family:var(--sans);margin-top:2px">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT: TECHNICAL -->
+<div class="pnl">
+  <div class="ptl">◈ TECHNICAL INTELLIGENCE</div>
+
+  <div class="slbl">MOMENTUM</div>
+  <div style="padding:4px 0;border-bottom:1px solid var(--b1)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+      <div class="dlb">RSI (14) INTRADAY</div>
+      <div id="b-rsi" class="bdg bn">—</div>
+    </div>
+    <div id="v-rsi" class="dv" style="font-size:18px;margin-bottom:4px">—</div>
+    <div class="rsit">
+      <div class="rsios"></div><div class="rsiob"></div>
+      <div id="rsin" class="rsin" style="left:50%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:6px;color:var(--t4);font-family:var(--sans)"><span>OS 30</span><span>50</span><span>OB 70</span></div>
+  </div>
+
+  <div class="slbl">MARKET STRUCTURE</div>
+  <div class="dr"><div class="dl"><div class="dlb">5-MIN STRUCTURE</div><div id="v-s5" class="dvsm">—</div></div><div><div id="b-s5" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">DAILY STRUCTURE</div><div id="v-sd" class="dvsm">—</div></div><div><div id="b-sd" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">TREND PHASE</div><div id="v-ph" class="dvsm">—</div></div><div><div id="b-ph" class="bdg bg">—</div></div></div>
+
+  <div class="slbl">EMA STACK</div>
+  <div class="dr"><div class="dl"><div class="dlb">EMA 20 (FAST)</div><div id="v-e20" class="dvsm blink">—</div></div><div><div id="b-e20" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">EMA 50 (MID)</div><div id="v-e50" class="dvsm blink">—</div></div><div><div id="b-e50" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">EMA 200 (MACRO)</div><div id="v-e200" class="dvsm blink">—</div></div><div><div id="b-e200" class="bdg bn">—</div></div></div>
+
+  <div class="slbl">PRICE vs KEY LEVELS</div>
+  <div class="dr"><div class="dl"><div class="dlb">vs VWAP</div><div id="v-vw" class="dvsm">—</div></div><div><div id="b-vw" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">vs PREV DAY HIGH</div><div id="v-pdh" class="dvsm">—</div></div><div><div id="b-pdh" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">vs PREV DAY LOW</div><div id="v-pdl" class="dvsm">—</div></div><div><div id="b-pdl" class="bdg bn">—</div></div></div>
+
+  <div class="slbl">VOLATILITY</div>
+  <div class="dr"><div class="dl"><div class="dlb">ATR 14 (DAILY)</div><div id="v-atr" class="dvsm" style="color:var(--neu)">—</div></div><div><div id="b-atr" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">SESSION RANGE</div><div id="v-srng" class="dvsm">—</div></div><div><div id="b-srng" class="bdg bn">—% ATR</div></div></div>
+
+  <div class="slbl">PRICE ACTION</div>
+  <div class="dr"><div class="dl"><div class="dlb">FAIR VALUE GAP</div><div id="v-fvg" class="dvsm" style="font-size:9px">—</div></div><div><div id="b-fvg" class="bdg bn">—</div></div></div>
+  <div class="dr"><div class="dl"><div class="dlb">CANDLE BIAS vs OPEN</div><div id="v-cb" class="dvsm">—</div></div><div><div id="b-cb" class="bdg bn">—</div></div></div>
+  <div class="dr" style="border:none"><div class="dl"><div class="dlb">LIQUIDITY TARGET</div><div id="v-liq" class="dvsm" style="font-size:9px">—</div></div><div><div id="b-liq" class="bdg bn">—</div></div></div>
+
+  <div class="slbl">HISTORICAL ANALOG MATCHES</div>
+  <div id="alogs"></div>
+
+  <div class="sb">
+    <div class="sbt">TECHNICAL INTELLIGENCE SCORE</div>
+    <div style="display:flex;align-items:flex-end;gap:8px"><div id="tsc" class="sbn" style="color:var(--neu)">—</div><div style="font-size:9px;color:var(--t3);margin-bottom:3px">/100</div></div>
+    <div class="btr"><div id="tsb" class="btf" style="width:0%"></div></div>
+    <div id="tsl" class="sbl" style="color:var(--neu)">CALCULATING...</div>
+  </div>
+</div>
+
+</div><!-- end grid -->
+
+<!-- AI MASTER OUTPUT -->
+<div id="ai">
+  <div class="ait">◈ GIT MASTER INTELLIGENCE OUTPUT — INSTITUTIONAL BRIEF</div>
+  <div id="aig"><div style="color:var(--t3);font-family:var(--sans);font-size:9px">Initialising intelligence engine...</div></div>
+</div>
+
+<!-- NEWS PANEL -->
+<div id="news">
+  <div class="nh">
+    <div class="ntl">◈ LIVE GOLD INTELLIGENCE FEED</div>
+    <div class="pdot" style="width:4px;height:4px;border-radius:50%;background:var(--bull)"></div>
+    <div id="nts" style="font-size:7px;color:var(--t4);letter-spacing:1px;font-family:var(--sans)">LOADING...</div>
+    <div style="flex:1"></div>
+    <div style="font-size:7px;color:var(--t4);font-family:var(--sans)">Reuters · Kitco · MarketWatch · Bloomberg · Investing.com</div>
+  </div>
+  <div id="ncards"></div>
+</div>
+
+<!-- STATUS BAR -->
+<div id="stbar">
+  <div class="sti"><div class="pdot" style="width:4px;height:4px;border-radius:50%;background:var(--bull)"></div><span id="svs">CONNECTING...</span></div>
+  <div class="sti">AUTO-REFRESH: 30s</div>
+  <div class="sti">ENGINE: GIT v4.0</div>
+  <div class="sti" id="src">—</div>
+  <div style="flex:1"></div>
+  <div class="sti">FOR INFORMATIONAL PURPOSES ONLY — NOT FINANCIAL ADVICE</div>
+</div>
+
+</div><!-- end app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// GIT TERMINAL v4.0 — Frontend
+// ═══════════════════════════════════════════════════════════════
+let D = {};
+const $ = id => document.getElementById(id);
+const fmt  = (n,d=2) => n!=null&&!isNaN(n) ? parseFloat(n).toFixed(d) : '—';
+const fmtP = (n,d=2) => n!=null&&!isNaN(n) ? parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}) : '—';
+const fmtC = (n,d=2) => n!=null&&!isNaN(n) ? ((n>=0?'+':'')+parseFloat(n).toFixed(d)) : '—';
+const scol = s => s>=62?'#00D97E':s<=38?'#E74C3C':'#FF9100';
+
+function se(id,txt,col){const e=$(id);if(!e)return;e.textContent=txt;e.classList.remove('blink');if(col)e.style.color=col;}
+function sb(id,dir,txt){const e=$(id);if(!e)return;e.className='bdg '+(dir>0?'bb':dir<0?'br':'bn');e.textContent=txt||(dir>0?'BULLISH':dir<0?'BEARISH':'NEUTRAL');}
+function sl(id,pct,col){const e=$(id);if(!e)return;e.style.width=pct+'%';if(col)e.style.background=col;}
+
+// ── DATA FETCH ──────────────────────────────────────────────
+async function fetchData(){
+  try{
+    const r=await fetch('/api/all',{signal:AbortSignal.timeout(10000)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d.status==='loading'){setTimeout(fetchData,5000);return;}
+    D=d; renderAll();
+    se('svs','DATA: LIVE','#00D97E');
+    se('lupd','UPD: '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+    se('src','SOURCE: '+window.location.hostname);
+  }catch(e){
+    se('svs','RETRYING...','#FF9100');
+    setTimeout(fetchData,8000);
+  }
+}
+
+// ── RENDER ALL ───────────────────────────────────────────────
+function renderAll(){
+  renderHeader();
+  renderTicker();
+  renderMacro();
+  renderTech();
+  renderCenter();
+  renderNews();
+  renderAI();
+}
+
+function renderHeader(){
+  const g=D.market?.gold;
+  if(g){
+    const c=g.ch>=0?'#C8A840':'#E74C3C';
+    se('hp',`$${fmtP(g.price)}`,c);
+    se('hc',`${fmtC(g.ch)} (${fmtC(g.chp)}%)`,g.ch>=0?'#00D97E':'#E74C3C');
+  }
+  const ps=[['h-dxy','dxy',3,true],['h-10y','ten_y',3,true],['h-vix','vix',1,false],['h-spx','spx',0,false],['h-wti','wti',2,false],['h-ag','silver',3,false],['h-gdx','gdx',2,false]];
+  ps.forEach(([id,k,d,inv])=>{
+    const m=D.market?.[k];if(!m)return;
+    const dir=inv?(m.chp<-0.1?1:m.chp>0.1?-1:0):(m.chp>0.1?1:m.chp<-0.1?-1:0);
+    se(id,fmt(m.price,d),dir>0?'#00D97E':dir<0?'#E74C3C':'#777');
+  });
+  const hb=$('hbias'),comp=D.composite||50;
+  if(hb){
+    if(comp>=63){hb.textContent='▲ BULLISH';hb.style.cssText='color:#00D97E;border-color:#00D97E30;background:#00D97E08';}
+    else if(comp<=37){hb.textContent='▼ BEARISH';hb.style.cssText='color:#E74C3C;border-color:#E74C3C30;background:#E74C3C08';}
+    else{hb.textContent='◆ NEUTRAL';hb.style.cssText='color:#FF9100;border-color:#FF910030;background:#FF910008';}
+    hb.className='hbias';
+  }
+}
+
+function renderTicker(){
+  const m=D.market||{};
+  const items=[
+    ['XAU/USD',m.gold,'$',2,false],['DXY',m.dxy,'',3,true],['US10Y',m.ten_y,'',3,true],
+    ['US2Y',m.two_y,'',3,true],['VIX',m.vix,'',1,false],['SPX',m.spx,'',0,false],
+    ['DOW',m.dji,'',0,false],['NDX',m.ndx,'',0,false],['WTI',m.wti,'$',2,false],
+    ['SILVER',m.silver,'$',3,false],['COPPER',m.copper,'$',3,false],
+    ['EUR/USD',m.eurusd,'',4,false],['GBP/USD',m.gbpusd,'',4,false],
+    ['USD/JPY',m.usdjpy,'',2,false],['USD/CNH',m.usdcnh,'',4,false],
+    ['GLD',m.gld,'$',2,false],['GDX',m.gdx,'$',2,false],['SLV',m.slv,'$',2,false],
+    ['NAT GAS',m.ng,'$',3,false],
+  ].filter(([,d])=>d?.price);
+  const html=[...items,...items].map(([sym,d,pfx,dec,inv])=>{
+    const dir=inv?(d.chp<-0.1?1:d.chp>0.1?-1:0):(d.chp>0.1?1:d.chp<-0.1?-1:0);
+    const c=dir>0?'#00D97E':dir<0?'#E74C3C':'#666';
+    return `<span class="ti"><span class="ts">${sym}</span><span style="color:${c};font-weight:500">${pfx}${fmtP(d.price,dec)}&nbsp;<span style="font-size:8px">${fmtC(d.chp)}%</span></span></span>`;
+  }).join('');
+  $('tkri').innerHTML=html;
+}
+
+function mrow(vi,ci,bi,key,inv,pfx='',dec=3){
+  const m=D.market?.[key];if(!m)return;
+  const dir=inv?(m.chp<-0.1?1:m.chp>0.1?-1:0):(m.chp>0.1?1:m.chp<-0.1?-1:0);
+  const c=dir>0?'#00D97E':dir<0?'#E74C3C':'#777';
+  se(vi,`${pfx}${fmtP(m.price,dec)}`,c);se(ci,`${fmtC(m.chp)}%`,c);sb(bi,dir);
+}
+
+function renderMacro(){
+  mrow('v-dxy','c-dxy','b-dxy','dxy',true,'',3);
+  mrow('v-10y','c-10y','b-10y','ten_y',true,'',3);
+  mrow('v-2y','c-2y','b-2y','two_y',true,'',3);
+  mrow('v-tips','c-tips','b-tips','tips',false,'$',2);
+  mrow('v-vix','c-vix','b-vix','vix',false,'',1);
+  mrow('v-spx','c-spx','b-spx','spx',false,'',0);
+  mrow('v-dji','c-dji','b-dji','dji',false,'',0);
+  mrow('v-ndx','c-ndx','b-ndx','ndx',false,'',0);
+  mrow('v-wti','c-wti','b-wti','wti',false,'$',2);
+  mrow('v-ng','c-ng','b-ng','ng',false,'$',3);
+  mrow('v-ag','c-ag','b-ag','silver',false,'$',3);
+  mrow('v-cu','c-cu','b-cu','copper',false,'$',3);
+  mrow('v-eu','c-eu','b-eu','eurusd',false,'',4);
+  mrow('v-gb','c-gb','b-gb','gbpusd',false,'',4);
+  mrow('v-jpy','c-jpy','b-jpy','usdjpy',false,'',2);
+  mrow('v-cnh','c-cnh','b-cnh','usdcnh',false,'',4);
+  mrow('v-gld','c-gld','b-gld','gld',false,'$',2);
+  mrow('v-gdx','c-gdx','b-gdx','gdx',false,'$',2);
+  mrow('v-slv','c-slv','b-slv','slv',false,'$',2);
+
+  const g=D.market?.gold,s=D.market?.silver;
+  if(g&&s&&g.price&&s.price){
+    const r=g.price/s.price;se('v-gsr',r.toFixed(1),r>82?'#00D97E':r<70?'#E74C3C':'#777');
+    const e=$('b-gsr');if(e){e.textContent=r>85?'EXTREME':r>80?'ELEVATED':'NORMAL';e.className='bdg bg';}
+  }
+
+  const t10=D.market?.ten_y,t2=D.market?.two_y;
+  if(t10&&t2&&t10.price&&t2.price){
+    const sp=t10.price-t2.price;
+    se('v-crv',`${fmtC(sp,3)}%`,sp>0?'#00D97E':'#E74C3C');
+    const e=$('b-crv');if(e){e.textContent=sp>0?'NORMAL':'INVERTED';e.className=`bdg ${sp>0?'bb':'br'}`;}
+  }
+
+  const fw=D.fedwatch||{};
+  if(fw.cut!=null){
+    se('fw-cut',fw.cut+'%','#00D97E');se('fw-hold',fw.hold+'%','#FF9100');se('fw-hike',fw.hike+'%','#E74C3C');
+    se('fw-sig',fw.cut>40?'DOVISH REPRICING — Bullish gold':fw.hike>25?'HAWKISH REPRICING — Bearish gold':'NEUTRAL — Stable expectations',fw.cut>40?'#00D97E':fw.hike>25?'#E74C3C':'#FF9100');
+  }
+
+  const h=D.hawk;
+  if(h!=null){
+    const c=h>60?'#E74C3C':h<40?'#00D97E':'#FF9100';
+    se('hkn',h,c);sl('hkf',h,c);
+    const e=$('hkr');if(e){e.textContent=D.hawk_regime||'—';e.className=`bdg ${D.hawk_dir>0?'br':D.hawk_dir<0?'bb':'bn'}`;}
+  }
+
+  renderCalendar();
+
+  const mc=scol(D.macro_score||50);
+  se('msc',D.macro_score||'—',mc);sl('msb',D.macro_score||0,mc);
+  const ms=$('msl');if(ms){ms.textContent=D.macro_score>=62?'MACRO: BULLISH FOR GOLD':D.macro_score<=38?'MACRO: BEARISH FOR GOLD':'MACRO: NEUTRAL';ms.style.color=mc;}
+}
+
+function renderTech(){
+  const t=D.tech;if(!t)return;
+  if(t.rsi!=null){
+    const c=t.rsi>55?'#00D97E':t.rsi<45?'#E74C3C':'#777';
+    se('v-rsi',fmt(t.rsi,1),c);
+    const n=$('rsin');if(n)n.style.left=Math.max(2,Math.min(98,t.rsi))+'%';
+    const d=t.rsi>55?1:t.rsi<45?-1:0;
+    sb('b-rsi',d,t.rsi>=70?'OVERBOUGHT':t.rsi<=30?'OVERSOLD':d>0?'BULLISH':'BEARISH');
+  }
+  const su=(vi,bi,str)=>{if(!str)return;const c=str.dir>0?'#00D97E':str.dir<0?'#E74C3C':'#777';se(vi,str.text,c);sb(bi,str.dir);};
+  su('v-s5','b-s5',t.structure_5m);su('v-sd','b-sd',t.structure_d);
+  if(t.phase){const d=t.phase.includes('EXPAN')?1:t.phase.includes('DIST')?-1:0;se('v-ph',t.phase,d>0?'#00D97E':d<0?'#E74C3C':'#777');const e=$('b-ph');if(e){e.textContent=t.phase.split(' ')[0];e.className=`bdg ${d>0?'bb':d<0?'br':'bg'}`;}}
+  const eu=(vi,bi,ev)=>{if(!ev||!t.cur)return;const d=t.cur>ev?1:-1;se(vi,'$'+fmtP(ev),d>0?'#00D97E':'#E74C3C');sb(bi,d);};
+  eu('v-e20','b-e20',t.ema20);eu('v-e50','b-e50',t.ema50);eu('v-e200','b-e200',t.ema200);
+  if(t.vwap&&t.cur){const d=t.cur>t.vwap?1:-1;se('v-vw',`${fmtC((t.cur-t.vwap)/t.vwap*100)}% / $${fmtP(t.vwap)}`,d>0?'#00D97E':'#E74C3C');sb('b-vw',d,d>0?'ABOVE VWAP':'BELOW VWAP');}
+  if(t.pdh&&t.cur){const df=t.cur-t.pdh;sb('b-pdh',df>=0?1:-1,df>=0?'ABOVE':'BELOW');se('v-pdh',`${fmtC(df)} ($${fmtP(t.pdh)})`,df>=0?'#00D97E':'#E74C3C');}
+  if(t.pdl&&t.cur){const df=t.cur-t.pdl;sb('b-pdl',df>=0?1:-1,df>=0?'ABOVE':'BELOW');se('v-pdl',`${fmtC(df)} ($${fmtP(t.pdl)})`,df>=0?'#00D97E':'#E74C3C');}
+  if(t.atr_daily){const c=t.atr_daily>45?'#E74C3C':t.atr_daily>25?'#FF9100':'#777';se('v-atr','$'+fmt(t.atr_daily),c);sb('b-atr',0,t.atr_daily>45?'HIGH VOL':t.atr_daily>25?'NORMAL':'LOW VOL');}
+  if(t.session_high&&t.session_low){const rng=t.session_high-t.session_low;se('v-srng','$'+fmt(rng));if(t.atr_daily){const pct=Math.round(rng/t.atr_daily*100);const e=$('b-srng');if(e){e.textContent=pct+'% ATR';e.className=`bdg ${pct>70?'bb':pct>40?'bn':'br'}`;}};}
+  if(t.fvg&&t.fvg.length>0){const f=t.fvg[t.fvg.length-1];const d=f.type==='BULL'?1:-1;se('v-fvg',`${f.type} FVG $${fmtP(f.lo)}–$${fmtP(f.hi)}`,d>0?'#00D97E':'#E74C3C');sb('b-fvg',d,f.type+' FVG');}
+  else{se('v-fvg','No recent FVG detected','#333');sb('b-fvg',0,'NONE');}
+  if(t.cur&&t.today_open){const df=t.cur-t.today_open;sb('b-cb',df>=0?1:-1);se('v-cb',`${fmtC(df)} from open $${fmtP(t.today_open)}`,df>=0?'#00D97E':'#E74C3C');}
+  if(t.cur&&t.pdh&&t.pdl){
+    const abPDH=t.cur>t.pdh,bePDL=t.cur<t.pdl,mid=(t.pdh+t.pdl)/2;
+    let lt,ld;
+    if(abPDH){lt=`BSL SWEPT above PDH $${fmtP(t.pdh)}`;ld=1;}
+    else if(bePDL){lt=`SSL SWEPT below PDL $${fmtP(t.pdl)}`;ld=-1;}
+    else if(t.cur>mid){lt=`BSL target: $${fmtP(t.pdh)} (+$${fmt(t.pdh-t.cur)})`;ld=1;}
+    else{lt=`SSL target: $${fmtP(t.pdl)} (-$${fmt(t.cur-t.pdl)})`;ld=-1;}
+    se('v-liq',lt,ld>0?'#00D97E':'#E74C3C');sb('b-liq',ld,ld>0?'BSL HUNT':'SSL HUNT');
+  }
+  if(t.pdh)se('l-pdh','$'+fmtP(t.pdh),'#00D97E');
+  if(t.pdl)se('l-pdl','$'+fmtP(t.pdl),'#E74C3C');
+  if(t.session_high)se('l-sh','$'+fmtP(t.session_high),'#C8A840');
+  if(t.session_low)se('l-sl','$'+fmtP(t.session_low),'#C8A840');
+  if(t.vwap)se('l-vwap','$'+fmtP(t.vwap),'#5B8BDF');
+  if(t.atr_daily)se('l-atr','±$'+fmt(t.atr_daily),'#FF9100');
+  if(t.pwh)se('l-pwh','$'+fmtP(t.pwh),'#00D97E');
+  if(t.pwl)se('l-pwl','$'+fmtP(t.pwl),'#E74C3C');
+
+  const tc=scol(D.tech_score||50);
+  se('tsc',D.tech_score||'—',tc);sl('tsb',D.tech_score||0,tc);
+  const tl=$('tsl');if(tl){tl.textContent=D.tech_score>=62?'TECHNICALLY BULLISH':D.tech_score<=38?'TECHNICALLY BEARISH':'TECHNICALLY NEUTRAL';tl.style.color=tc;}
+
+  const al=$('alogs');
+  if(al&&D.analogs?.length){
+    al.innerHTML=D.analogs.map(a=>{
+      const col=a.gold_direction==='BULLISH'?'#00D97E':a.gold_direction==='BEARISH'?'#E74C3C':'#FF9100';
+      const pr24=a.result_24h>=0?'+':'';const pr72=a.result_72h>=0?'+':'';
+      return `<div class="alog">
+        <div class="alt"><span class="ale">${a.date} — ${a.event}</span><span class="alm" style="color:${col}">${a.match_score}% match</span></div>
+        <div class="alr" style="color:${col}">24h: ${pr24}${a.result_24h}% &nbsp;|&nbsp; 72h: ${pr72}${a.result_72h}%</div>
+        <div class="alp">${a.desc}</div>
+        <div class="alb"><div class="alf" style="width:${a.match_score}%;background:${col}"></div></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function renderCenter(){
+  const comp=D.composite||50;
+  const col=scol(comp);
+  const bw=$('bword');
+  if(bw){bw.textContent=comp>=63?'▲ BULLISH':comp<=37?'▼ BEARISH':'◆ NEUTRAL';bw.style.color=comp>=63?'#00D97E':comp<=37?'#E74C3C':'#FF9100';}
+  se('bsub',comp>=63?'CONDITIONS FAVOR NY LONG SETUPS':comp<=37?'CONDITIONS FAVOR NY SHORT SETUPS':'AWAIT DIRECTIONAL CATALYST');
+  se('cnum',comp,col);
+  const arc=$('garc');if(arc){arc.setAttribute('stroke-dasharray',`${comp/100*232} 232`);arc.setAttribute('stroke',col);}
+  const p0=comp>=62?Math.round(50+comp*0.4):comp<=38?Math.round(100-comp*0.4-30):50;
+  const p1=comp>=62?Math.round(45+comp*0.35):comp<=38?Math.round(95-comp*0.35-25):45;
+  se('w24',comp>=63?'▲ BULL':comp<=37?'▼ BEAR':'◆ NEUT',col);se('w24p',p0+'% probability');
+  se('w72',comp>=63?'▲ BULL':comp<=37?'▼ BEAR':'◆ NEUT',col);se('w72p',p1+'% continuation');
+  const conf=D.confidence||50;const cc=scol(conf);
+  se('cfn',conf,cc);
+  const cr=$('crng');if(cr){cr.setAttribute('stroke-dasharray',`${conf/100*138} 138`);cr.setAttribute('stroke',cc);}
+  se('cfl',conf>=70?'HIGH CONFIDENCE':conf>=50?'MODERATE CONFIDENCE':'LOW — MIXED SIGNALS',cc);
+  const rl=$('rsns');
+  if(rl&&D.reasons?.length){
+    rl.innerHTML=D.reasons.slice(0,10).map(r=>`<div class="rsn"><span class="ri" style="color:${r.d>0?'#00D97E':r.d<0?'#E74C3C':'#FF9100'}">${r.d>0?'▲':r.d<0?'▼':'◆'}</span><span style="color:${r.d>0?'#888':r.d<0?'#666':'#777'}">${r.t}</span></div>`).join('');
+  }
+}
+
+function renderCalendar(){
+  const dow=new Date().getDay();
+  const evts=[
+    {d:1,t:'08:30',n:'Fed Speaker / Commentary',i:'high'},
+    {d:1,t:'10:00',n:'ISM Manufacturing PMI',i:'high'},
+    {d:2,t:'08:30',n:'Core PCE Price Index',i:'high'},
+    {d:2,t:'10:00',n:'JOLTS Job Openings',i:'high'},
+    {d:3,t:'08:15',n:'ADP Employment Change',i:'high'},
+    {d:3,t:'14:00',n:'FOMC Minutes Release',i:'high'},
+    {d:4,t:'08:30',n:'Initial Jobless Claims',i:'medium'},
+    {d:4,t:'10:00',n:'ISM Services PMI',i:'high'},
+    {d:5,t:'08:30',n:'Non-Farm Payrolls (NFP)',i:'high'},
+    {d:5,t:'08:30',n:'Unemployment Rate',i:'high'},
+    {d:5,t:'10:00',n:'University of Michigan Sentiment',i:'medium'},
+  ];
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const today=evts.filter(e=>e.d===dow);
+  const up=evts.filter(e=>e.d>dow).slice(0,4);
+  const show=[...today,...up].slice(0,6);
+  const el=$('cal');
+  if(el)el.innerHTML=show.length?show.map(ev=>{
+    const isT=ev.d===dow;
+    const dc=ev.i==='high'?'#E74C3C':ev.i==='medium'?'#FF9100':'#333';
+    return `<div class="cai"><div class="cad" style="background:${dc}"></div><div class="cat" style="color:${isT?'#C8A840':'#1e1e1e'}">${isT?ev.t:days[ev.d]}</div><div class="cae" style="color:${isT?'#555':'#1e1e1e'}">${ev.n}${isT?' ← TODAY':''}</div></div>`;
+  }).join(''):'<div class="cai"><div class="cad" style="background:#111"></div><div class="cae" style="color:#1e1e1e">No major events today</div></div>';
+}
+
+function renderNews(){
+  const news=D.news||[];
+  const comp=D.composite||50;
+  const analysis=[
+    {src:'GIT SIGNAL',title:`${comp>=63?'▲ BULLISH BIAS':comp<=37?'▼ BEARISH BIAS':'◆ NEUTRAL BIAS'} — Composite Score ${comp}/100`,body:`Macro ${D.macro_score||'—'}/100 · Technical ${D.tech_score||'—'}/100 · Hawkish Index ${D.hawk||'—'}/100 · Confidence ${D.confidence||'—'}%`,imp:{dir:comp>=63?1:comp<=37?-1:0,label:comp>=63?'BULLISH GOLD':comp<=37?'BEARISH GOLD':'NEUTRAL'},analogs:D.analogs?.slice(0,1)||[],isMain:true},
+    {src:'MACRO LAYER',title:`DXY ${D.market?.dxy?(D.market.dxy.chp>=0?'+':'')+fmt(D.market.dxy.chp)+'%':'—'} | 10Y ${D.market?.ten_y?fmt(D.market.ten_y.price,3)+'%':'—'} | VIX ${D.market?.vix?fmt(D.market.vix.price,1):'—'}`,body:`Real yield channel: TIPS ${D.market?.tips?(D.market.tips.chp>=0?'+':'')+fmt(D.market.tips.chp)+'%':'—'} | FedWatch: Cut ${D.fedwatch?.cut||'—'}% Hold ${D.fedwatch?.hold||'—'}% Hike ${D.fedwatch?.hike||'—'}%`,imp:{dir:D.macro_score>=62?1:D.macro_score<=38?-1:0,label:D.macro_score>=62?'MACRO BULLISH':D.macro_score<=38?'MACRO BEARISH':'MACRO NEUTRAL'}},
+    {src:'TECHNICAL LAYER',title:`RSI ${D.tech?.rsi?fmt(D.tech.rsi,1):'—'} | VWAP $${D.tech?.vwap?fmtP(D.tech.vwap):'—'} | ${D.tech?.structure_5m?.text||'—'}`,body:`Phase: ${D.tech?.phase||'—'} | ATR: $${D.tech?.atr_daily?fmt(D.tech.atr_daily):'—'} | FVG: ${D.tech?.fvg?.length?(D.tech.fvg[D.tech.fvg.length-1].type+' gap detected'):'None'}`,imp:{dir:D.tech_score>=62?1:D.tech_score<=38?-1:0,label:D.tech_score>=62?'TECHNICALLY BULLISH':D.tech_score<=38?'TECHNICALLY BEARISH':'NEUTRAL SETUP'}},
+  ];
+  const all=[...analysis,...news.slice(0,10)];
+  const nc=$('ncards');
+  if(nc)nc.innerHTML=all.map(item=>{
+    const d=item.imp?.dir||0;
+    const dc=d>0?'#00D97E':d<0?'#E74C3C':'#555';
+    const analogHtml=item.analogs?.length?`<div class="ncan"><div class="ncal">HISTORICAL ANALOG</div>${item.analogs.map(a=>`<div class="ncah" style="color:${a.gold_direction==='BULLISH'?'#00D97E44':a.gold_direction==='BEARISH'?'#E74C3C44':'#FF910044'}">${a.date}: ${a.result_24h>=0?'+':''}${a.result_24h}% (24h) / ${a.result_72h>=0?'+':''}${a.result_72h}% (72h)</div>`).join('')}</div>`:'';
+    const href=item.link&&item.link!=='#'?`href="${item.link}" target="_blank" rel="noopener"`:'';
+    return `<a class="nc${item.isMain?' nc-main':''}" ${href} style="${item.isMain?'min-width:270px;border-color:#C8A84025':''}">
+      <div class="ncs">${item.src||'NEWS'}</div>
+      <div class="nct">${item.title}</div>
+      ${item.body?`<div class="ncb">${item.body}</div>`:''}
+      <div class="nci"><div class="ncd" style="background:${dc}"></div><span style="color:${dc}">${item.imp?.label||'MONITOR'}</span>${item.imp?.channel?`&nbsp;—&nbsp;<span style="color:var(--t4);font-size:6px">${item.imp.channel}</span>`:''}</div>
+      ${analogHtml}
+    </a>`;
+  }).join('');
+  se('nts','UPD: '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}));
+}
+
+function renderAI(){
+  const comp=D.composite||50,col=scol(comp),m=D.market||{},t=D.tech||{};
+  const h=D.hawk||50,fw=D.fedwatch||{};
+  const dir=comp>=63?'BULLISH':comp<=37?'BEARISH':'NEUTRAL';
+  const aig=$('aig');if(!aig)return;
+  aig.innerHTML=`
+  <div>
+    <div class="ais">◈ TIMESTAMP + REGIME</div>
+    <div class="air">${new Date().toUTCString()}</div>
+    <div class="air" style="color:${col};font-weight:600">${D.hawk_regime||'—'} — Hawkish Index: ${h}/100</div>
+    <div class="ais" style="margin-top:7px">◈ REAL YIELD + DXY CHANNEL</div>
+    <div class="air">DXY: ${m.dxy?fmtP(m.dxy.price,3)+' ('+fmtC(m.dxy.chp)+'%)':'—'}</div>
+    <div class="air">10Y: ${m.ten_y?fmtP(m.ten_y.price,3)+'% ('+fmtC(m.ten_y.chp)+'%)':'—'}</div>
+    <div class="air">TIPS: ${m.tips?'$'+fmt(m.tips.price)+' ('+fmtC(m.tips.chp)+'%)':'—'}</div>
+    <div class="air" style="color:${col}">${comp>=62?'DOVISH ALIGNMENT — Gold positive':comp<=38?'HAWKISH ALIGNMENT — Gold negative':'MIXED — Monitor for regime shift'}</div>
+    <div class="ais" style="margin-top:7px">◈ FEDWATCH REPRICING</div>
+    <div class="air">Cut: ${fw.cut||'—'}% | Hold: ${fw.hold||'—'}% | Hike: ${fw.hike||'—'}%</div>
+    <div class="air" style="color:${fw.cut>40?'#00D97E':fw.hike>25?'#E74C3C':'#FF9100'}">${fw.cut>40?'DOVISH REPRICING — Bullish gold':fw.hike>25?'HAWKISH REPRICING — Bearish gold':'STABLE — No significant repricing'}</div>
+  </div>
+  <div>
+    <div class="ais">◈ TECHNICAL STRUCTURE</div>
+    <div class="air" style="color:${col};font-weight:600">${D.tech_score>=62?'TECHNICALLY BULLISH':D.tech_score<=38?'TECHNICALLY BEARISH':'NEUTRAL'} (${D.tech_score||'—'}/100)</div>
+    <div class="air">RSI: ${t.rsi?fmt(t.rsi,1):'—'} | VWAP: ${t.vwap?'$'+fmtP(t.vwap):'—'}</div>
+    <div class="air">EMA50: ${t.ema50&&t.cur?(t.cur>t.ema50?'▲ Above — uptrend':'▼ Below — downtrend'):'—'}</div>
+    <div class="air">Structure: ${t.structure_5m?.text||'—'} | Phase: ${t.phase||'—'}</div>
+    <div class="ais" style="margin-top:7px">◈ VOLATILITY REGIME</div>
+    <div class="air" style="color:${t.atr_daily>45?'#E74C3C':t.atr_daily>25?'#FF9100':'#00D97E'}">${t.atr_daily>45?'HIGH VOLATILITY — Wide TP/SL required':t.atr_daily>25?'NORMAL VOLATILITY — Standard setups':t.atr_daily?'LOW VOLATILITY — Breakout imminent':'Calculating...'}</div>
+    <div class="air">ATR: ${t.atr_daily?'$'+fmt(t.atr_daily):'—'} | Session range: ${t.session_high&&t.session_low?'$'+fmt(t.session_high-t.session_low):'—'}</div>
+    <div class="ais" style="margin-top:7px">◈ RISK ENVIRONMENT</div>
+    <div class="air">VIX: ${m.vix?fmt(m.vix.price,1):'—'} | S&P: ${m.spx?fmtC(m.spx.chp)+'%':'—'} | WTI: ${m.wti?fmtC(m.wti.chp)+'%':'—'}</div>
+    <div class="air">G/S Ratio: ${D.gsr?D.gsr:'—'} | TIPS: ${m.tips?fmtC(m.tips.chp)+'%':'—'}</div>
+  </div>
+  <div>
+    <div class="ais">◈ HISTORICAL ANALOGS</div>
+    ${D.analogs?.length?D.analogs.map(a=>{const c=a.gold_direction==='BULLISH'?'#00D97E44':a.gold_direction==='BEARISH'?'#E74C3C44':'#FF910044';return`<div class="air" style="color:${c}">${a.date} (${a.match_score}%): ${a.result_24h>=0?'+':''}${a.result_24h}%/24h, ${a.result_72h>=0?'+':''}${a.result_72h}%/72h</div>`}).join(''):'<div class="air">Calculating analogs...</div>'}
+    <div class="ais" style="margin-top:7px">◈ LIQUIDITY MAP</div>
+    <div class="air" style="color:#00D97E44">BSL Target: ${t.pdh?'$'+fmtP(t.pdh)+' (PDH)':t.pwh?'$'+fmtP(t.pwh)+' (PWH)':'—'}</div>
+    <div class="air" style="color:#E74C3C44">SSL Target: ${t.pdl?'$'+fmtP(t.pdl)+' (PDL)':t.pwl?'$'+fmtP(t.pwl)+' (PWL)':'—'}</div>
+    ${t.fvg?.length?`<div class="air" style="color:#C8A84044">FVG: ${t.fvg[t.fvg.length-1].type} $${fmtP(t.fvg[t.fvg.length-1].lo)}–$${fmtP(t.fvg[t.fvg.length-1].hi)}</div>`:''}
+    <div class="ais" style="margin-top:7px">◈ PRIMARY RISK CATALYST</div>
+    <div class="air">${h>65?'FOMC/Fed hawkish surprise':h<35?'Strong macro data reversal':'CPI/NFP directional trigger'}</div>
+  </div>
+  <div>
+    <div class="ais">◈ MASTER SIGNAL</div>
+    <div style="color:${col};font-size:20px;font-weight:700;line-height:1;margin-bottom:4px">${dir}</div>
+    <div class="air">Composite: ${comp}/100</div>
+    <div class="air">Confidence: ${D.confidence||'—'}/100</div>
+    <div class="ais" style="margin-top:7px">◈ PROBABILITY WINDOWS</div>
+    <div class="air">0–24H: <span style="color:${col};font-weight:600">${comp>=62?Math.round(50+comp*0.4):comp<=38?Math.round(100-comp*0.4-30):50}%</span> directional</div>
+    <div class="air">24–72H: <span style="color:${col};font-weight:600">${comp>=62?Math.round(45+comp*0.35):comp<=38?Math.round(95-comp*0.35-25):45}%</span> continuation</div>
+    <div class="aih" style="background:${col}10;border-color:${col}">
+      <div style="color:${col};font-weight:600;font-size:9px">GIT SIGNAL: ${comp>=63?'LONG — Buy pullbacks to VWAP/EMA20':comp<=37?'SHORT — Sell rallies to VWAP/EMA20':'NO TRADE — Await catalyst'}</div>
+    </div>
+    <div class="ais" style="margin-top:7px">◈ SERVER INFO</div>
+    <div class="air">Host: ${window.location.hostname}</div>
+    <div class="air">Data: Yahoo Finance · RSS Feeds</div>
+    <div class="air">Refresh: Every 30 seconds</div>
+  </div>`;
+}
+
+// ── SESSION CLOCK ───────────────────────────────────────────
+function updateClock(){
+  const now=new Date();
+  const mo=now.getUTCMonth();
+  const off=(mo>=2&&mo<=10)?-4:-5;
+  const eH=((now.getUTCHours()+off+24)%24),eM=now.getUTCMinutes();
+  const dec=eH+eM/60;
+  const sess=[
+    {n:'ASIAN SESSION',s:18,e:24,c:'#9B59B6'},{n:'ASIAN SESSION',s:0,e:3,c:'#9B59B6'},
+    {n:'LONDON OPEN KZ',s:2,e:5,c:'#5B8BDF'},{n:'LONDON SESSION',s:3,e:12,c:'#5B8BDF'},
+    {n:'NY OPEN KILLZONE',s:8,e:11,c:'#00D97E'},{n:'NY AM SESSION',s:8,e:12.5,c:'#00D97E'},
+    {n:'LONDON CLOSE',s:10,e:12.5,c:'#FF9100'},{n:'NY PM SESSION',s:12.5,e:16,c:'#C8A840'},
+    {n:'NY CLOSE',s:15,e:16.5,c:'#E74C3C'},{n:'DEAD ZONE',s:16.5,e:18,c:'#333'},
+  ];
+  const act=sess.find(s=>s.s<=dec&&dec<s.e)||{n:'OVERNIGHT',c:'#222'};
+  const nyS=8*60,nyE=16*60,nowM=eH*60+eM;
+  let tt,ts;
+  if(nowM<nyS){const r=nyS-nowM;tt=`${Math.floor(r/60)}h ${r%60}m`;ts='UNTIL NY OPENS';}
+  else if(nowM<nyE){const r=nyE-nowM;tt=`${Math.floor(r/60)}h ${r%60}m`;ts='REMAINING IN NY';}
+  else{tt='CLOSED';ts='NY SESSION ENDED';}
+  se('snm',act.n,act.c);se('stm',tt,act.c);se('ssb',ts);
+  const sb=$('sess');if(sb)sb.style.borderColor=act.c+'40';
+  se('clk',`${String(eH).padStart(2,'0')}:${String(eM).padStart(2,'0')} ${off===-4?'EDT':'EST'}`);
+}
+
+// ── LOADER ──────────────────────────────────────────────────
+async function init(){
+  setInterval(updateClock,1000);updateClock();
+  let p=0;
+  const pi=setInterval(()=>{if(p<88){p+=Math.random()*18;$('lp').style.width=Math.min(p,88)+'%';}},350);
+  se('lm','CONNECTING TO MARKET FEEDS...');
+  await new Promise(r=>setTimeout(r,800));
+  se('lm','LOADING MARKET DATA...');
+  await fetchData();
+  clearInterval(pi);$('lp').style.width='100%';se('lm','TERMINAL READY');
+  await new Promise(r=>setTimeout(r,500));
+  const ldr=$('ldr');ldr.style.opacity='0';
+  setTimeout(()=>{ldr.style.display='none';$('app').style.display='flex';},600);
+  setInterval(fetchData,30000);
+}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
