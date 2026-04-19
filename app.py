@@ -722,8 +722,12 @@ def api_all():
     with CACHE_LOCK:
         data = CACHE.get("data")
     if not data:
-        return jsonify({"status": "loading", "message": "Fetching market data, please wait 20-30 seconds..."}), 202
-    return jsonify(data)
+        if not data:
+    return jsonify({
+        "status": "warming_up",
+        "market": {},
+        "message": "System initializing. Data will appear shortly."
+    }), 200
 
 @app.route("/api/health")
 def health():
